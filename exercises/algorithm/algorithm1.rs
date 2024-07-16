@@ -2,11 +2,11 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
+// use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -28,14 +28,13 @@ struct LinkedList<T> {
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
-
-impl<T> Default for LinkedList<T> {
+impl<T: std::cmp::PartialOrd + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: std::cmp::PartialOrd + Clone>  LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,15 +68,45 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+
+    pub fn merge( list_a: LinkedList<T>,  list_b: LinkedList<T>) -> Self {
+        let mut merged_list = LinkedList::new();
+    
+        // 临时指针初始化
+        let mut a_curr = list_a.start;
+        let mut b_curr = list_b.start;
+    
+        // 合并两个链表
+        while a_curr.is_some() && b_curr.is_some() {
+            let a_next;
+            let b_next;
+    
+            unsafe {
+                a_next = (*a_curr.unwrap().as_ptr()).next;
+                b_next = (*b_curr.unwrap().as_ptr()).next;
+    
+                if (*a_curr.unwrap().as_ptr()).val <= (*b_curr.unwrap().as_ptr()).val {
+                    merged_list.add((*a_curr.unwrap().as_ptr()).val.clone());
+                    a_curr = a_next;
+                } else {
+                    merged_list.add((*b_curr.unwrap().as_ptr()).val.clone());
+                    b_curr = b_next;
+                }
+            }
         }
-	}
+    
+        // 将剩余的节点添加到 merged_list
+        let mut remaining = if a_curr.is_some() { a_curr } else { b_curr };
+        while let Some(node) = remaining {
+            unsafe {
+                merged_list.add((*node.as_ptr()).val.clone());
+                remaining = (*node.as_ptr()).next;
+            }
+        }
+    
+        merged_list
+    }
+    
 }
 
 impl<T> Display for LinkedList<T>

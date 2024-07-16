@@ -2,8 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
-
 use std::cmp::Ord;
 use std::default::Default;
 
@@ -38,6 +36,20 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.items.push(value);
+        self.count += 1;
+        self.swim(self.count);
+    }
+    fn swim(&mut self, mut idx: usize) {
+        while idx > 1 {
+            let parent_idx = self.parent_idx(idx);  // 先计算父节点索引
+            if (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
+                self.items.swap(idx, parent_idx);  // 然后进行交换
+                idx = parent_idx;
+            } else {
+                break;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,7 +70,13 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+		let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if right > self.count || (self.comparator)(&self.items[left], &self.items[right]) {
+            left
+        } else {
+            right
+        }
     }
 }
 
@@ -75,8 +93,24 @@ where
     pub fn new_max() -> Self {
         Self::new(|a, b| a > b)
     }
+   
 }
 
+impl<T> Heap<T>
+where
+    T: Default , // Ensure `Ord` is included to enable comparisons
+{
+    fn sink(&mut self, mut idx: usize) {
+        while self.left_child_idx(idx) <= self.count {
+            let child_idx = self.smallest_child_idx(idx);
+            if !(self.comparator)(&self.items[child_idx], &self.items[idx]) {
+                break;
+            }
+            self.items.swap(idx, child_idx);
+            idx = child_idx;
+        }
+    }
+}
 impl<T> Iterator for Heap<T>
 where
     T: Default,
@@ -85,8 +119,19 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+		if self.count == 0 {
+            None
+        } else {
+            let root = self.items.swap_remove(1);
+            self.count -= 1;
+            if self.count > 0 {
+                self.sink(1);
+            }
+            Some(root)
+        }
     }
+
+    
 }
 
 pub struct MinHeap;
